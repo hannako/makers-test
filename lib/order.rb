@@ -1,3 +1,5 @@
+require 'discount_calculator'
+
 class Order
   COLUMNS = {
     broadcaster: 20,
@@ -5,16 +7,23 @@ class Order
     price: 8
   }.freeze
 
-  attr_accessor :material, :items
+  attr_accessor :material, :items, :total_discount, :discount_calculator
 
   def initialize(material)
     self.material = material
     self.items = []
+    self.total_discount = 0
+    self.discount_calculator = DiscountCalculator.new
   end
 
   def add(broadcaster, delivery)
     items << [broadcaster, delivery]
   end
+
+  def apply_discount(order = self.items, discount)
+    self.total_discount += discount_calculator.total(order,discount)
+  end
+
 
   def total_cost
     items.inject(0) { |memo, (_, delivery)| memo += delivery.price }
@@ -36,6 +45,7 @@ class Order
       end
 
       result << output_separator
+      # result << "Discounts: -$#{discount}"
       result << "Total: $#{total_cost}"
     end.join("\n")
   end
